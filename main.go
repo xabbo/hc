@@ -17,6 +17,7 @@ var opts struct {
 	b64e  bool
 	decode bool
 	value bool
+	compact bool
 }
 
 func main() {
@@ -24,8 +25,9 @@ func main() {
 	flag.BoolVar(&opts.vl64e, "vl64e", false, "Encode VL64")
 	flag.BoolVar(&opts.b64, "b64", false, "Decode B64")
 	flag.BoolVar(&opts.b64e, "b64e", false, "Encode B64")
-	flag.BoolVar(&opts.value, "values", false, "Print only values when decoding VL64")
+	flag.BoolVar(&opts.value, "v", false, "Print only values for VL64")
 	flag.BoolVar(&opts.decode, "d", false, "Decode a string")
+	flag.BoolVar(&opts.compact, "c", false, "Print VL64 values as a single string")
 	flag.Parse()
 
 	if err := run(); err != nil {
@@ -80,7 +82,15 @@ func run() (err error) {
 				n := VL64EncodeLen(value)
 				buf := make([]byte, n)
 				VL64Encode(buf, value)
-				fmt.Println(encodeBytes(buf))
+				if opts.value || opts.compact {
+					if opts.compact {
+						fmt.Print(encodeBytes(buf))
+					} else {
+						fmt.Println(encodeBytes(buf))
+					}
+				} else {
+					fmt.Printf("%d: %s\n", value, encodeBytes(buf))
+				}
 			}
 		} else {
 			switch {
