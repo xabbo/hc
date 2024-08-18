@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -14,6 +15,7 @@ var opts struct {
 	vl64e bool
 	b64   bool
 	b64e  bool
+	decode bool
 	value bool
 }
 
@@ -23,6 +25,7 @@ func main() {
 	flag.BoolVar(&opts.b64, "b64", false, "Decode B64")
 	flag.BoolVar(&opts.b64e, "b64e", false, "Encode B64")
 	flag.BoolVar(&opts.value, "values", false, "Print only values when decoding VL64")
+	flag.BoolVar(&opts.decode, "d", false, "Decode a string")
 	flag.Parse()
 
 	if err := run(); err != nil {
@@ -32,6 +35,19 @@ func main() {
 }
 
 func run() (err error) {
+	if opts.decode {
+		b, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			return err
+		}
+		bytes, err := parseString(strings.TrimSpace(string(b)))
+		if err != nil {
+			return err
+		}
+		os.Stdout.Write(bytes)
+		return nil
+	}
+
 	n := 0
 	for _, b := range []bool{opts.vl64, opts.vl64e, opts.b64, opts.b64e} {
 		if b {
